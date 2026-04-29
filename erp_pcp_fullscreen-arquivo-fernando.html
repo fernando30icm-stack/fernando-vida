@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERP · PCP — Manufatura v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Syne',sans-serif;background:#09090c;color:#e8edf5}
+:root{
+  --bg0:#09090c;--bg1:#0d0f14;--bg2:#111418;--bg3:#161b22;
+  --bd:#1e2530;--bd2:#253040;
+  --tx1:#e8edf5;--tx2:#8a9ab0;--tx3:#3a4a5a;
+  --blue:#4a9eff;--green:#3fb950;--red:#f85149;--amber:#d29922;--purple:#bc8cff;
+  --fm:'JetBrains Mono',monospace;
+}
+.shell{display:flex;width:100vw;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:210px;min-width:210px;background:var(--bg0);border-right:0.5px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:none}
+.sidebar::-webkit-scrollbar{display:none}
+.slogo{padding:16px 14px;border-bottom:0.5px solid var(--bd);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.slogo-ico{width:34px;height:34px;border-radius:8px;background:rgba(74,158,255,.15);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.slogo-txt{font-size:13px;font-weight:700;color:var(--blue);line-height:1.2}
+.slogo-sub{font-size:9px;color:var(--tx3);font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.ssec{padding:14px 14px 3px;font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--tx3);text-transform:uppercase}
+.ni{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;font-size:13px;color:var(--tx3);cursor:pointer;transition:all .12s;position:relative;border-radius:0}
+.ni:hover{color:var(--tx2);background:rgba(255,255,255,.03)}
+.ni.on{color:var(--blue);background:rgba(74,158,255,.08);font-weight:500}
+.ni.on::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--blue)}
+.ni-ico{width:16px;font-size:14px;flex-shrink:0;text-align:center}
+.ni-badge{margin-left:auto;background:var(--blue);color:#fff;border-radius:10px;font-size:9px;padding:1px 7px;font-weight:700}
+.ni-badge.red{background:var(--red)}
+.suser{margin-top:auto;padding:12px 14px;border-top:0.5px solid var(--bd);flex-shrink:0}
+.suser-inner{display:flex;align-items:center;gap:9px}
+.avatar{width:32px;height:32px;border-radius:50%;background:rgba(74,158,255,.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--blue);flex-shrink:0}
+.uname{font-size:12px;color:var(--tx1);font-weight:500}
+.urole{font-size:9.5px;color:var(--tx3)}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg1);min-width:0}
+.topbar{padding:0 22px;height:54px;background:var(--bg0);border-bottom:0.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tb-title{font-size:16px;font-weight:700;color:var(--tx1)}
+.tb-crumb{font-size:10px;color:var(--tx3);font-family:var(--fm)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.sbar{position:relative}
+.sinp{background:var(--bg2);border:0.5px solid var(--bd);border-radius:6px;padding:7px 10px 7px 30px;font-size:12px;color:var(--tx2);width:200px;font-family:'Syne',sans-serif;outline:none;transition:border-color .15s}
+.sinp:focus{border-color:rgba(74,158,255,.4);color:var(--tx1)}
+.sinp::placeholder{color:var(--tx3)}
+.sico{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--tx3);pointer-events:none}
+.sel{background:var(--bg2);border:0.5px solid var(--bd);border-radius:6px;padding:6px 9px;font-size:11.5px;color:var(--tx2);font-family:'Syne',sans-serif;outline:none}
+.btn{border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:opacity .12s;white-space:nowrap}
+.btn:hover{opacity:.85}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-green{background:var(--green);color:#fff}
+.btn-ghost{background:rgba(255,255,255,.05);color:var(--tx2);border:0.5px solid var(--bd)}
+.tab-bar{display:flex;gap:0;background:var(--bg0);padding:0 22px;border-bottom:0.5px solid var(--bd);flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab{padding:12px 16px;font-size:12.5px;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;white-space:nowrap}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:500}
+.tab:hover:not(.on){color:var(--tx2)}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:18px 22px;scrollbar-width:thin;scrollbar-color:var(--bd) transparent}
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+
+/* CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.scard{background:var(--bg2);border:0.5px solid var(--bd);border-radius:8px;padding:14px 16px;position:relative;overflow:hidden}
+.scard-label{font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--tx3);margin-bottom:5px;text-transform:uppercase}
+.scard-val{font-size:24px;font-weight:700;color:var(--tx1);font-family:var(--fm);line-height:1}
+.scard-sub{font-size:10.5px;margin-top:4px}
+.scard-bar{position:absolute;bottom:0;left:0;height:2px;background:var(--blue)}
+.two-col{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:16px}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.chart-card{background:var(--bg2);border:0.5px solid var(--bd);border-radius:8px;padding:14px 16px;margin-bottom:16px}
+.chart-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--tx3);margin-bottom:12px;text-transform:uppercase}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.bar{border-radius:4px 4px 0 0;width:100%;cursor:pointer;transition:opacity .12s}
+.bar:hover{opacity:.7}
+.bar-lbl{font-size:9px;color:var(--tx3);font-family:var(--fm);text-align:center;line-height:1.3}
+.prog-bar{height:6px;border-radius:3px;background:var(--bd);overflow:hidden}
+.prog-fill{height:100%;border-radius:3px}
+.donut-wrap{display:flex;align-items:center;gap:14px}
+.donut-legend{display:flex;flex-direction:column;gap:7px;flex:1}
+.dl-item{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--tx2)}
+.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.section-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-title{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--tx3);text-transform:uppercase}
+
+/* TABLE */
+.tbl-wrap{background:var(--bg2);border:0.5px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:16px}
+.tbl-head{display:grid;padding:9px 16px;background:var(--bg0);border-bottom:0.5px solid var(--bd)}
+.th{font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--tx3);text-transform:uppercase}
+.th.c{text-align:center}
+.tbl-row{display:grid;padding:10px 16px;border-bottom:0.5px solid rgba(30,37,48,.5);align-items:center;transition:background .1s}
+.tbl-row:last-child{border-bottom:none}
+.tbl-row:hover{background:rgba(255,255,255,.025)}
+.cell{font-size:12.5px;display:flex;align-items:center}
+.cell.c{justify-content:center}
+.pbadge{display:inline-flex;align-items:center;gap:5px;background:rgba(74,158,255,.1);color:var(--blue);padding:3px 9px;border-radius:4px;font-size:11px;font-weight:600;border:0.5px solid rgba(74,158,255,.2)}
+.cname{color:var(--tx2);display:flex;align-items:center;gap:6px;font-size:12.5px}
+.cdot{width:4px;height:4px;border-radius:50%;background:var(--tx3);flex-shrink:0}
+.qbadge{background:rgba(63,185,80,.1);color:var(--green);padding:3px 9px;border-radius:4px;font-size:11px;font-family:var(--fm);border:0.5px solid rgba(63,185,80,.15)}
+.pill{padding:2px 9px;border-radius:4px;font-size:10.5px;font-weight:600}
+.p-ok{background:rgba(63,185,80,.1);color:var(--green);border:0.5px solid rgba(63,185,80,.2)}
+.p-warn{background:rgba(210,153,34,.1);color:var(--amber);border:0.5px solid rgba(210,153,34,.2)}
+.p-err{background:rgba(248,81,73,.1);color:var(--red);border:0.5px solid rgba(248,81,73,.2)}
+.p-info{background:rgba(74,158,255,.1);color:var(--blue);border:0.5px solid rgba(74,158,255,.2)}
+.p-purple{background:rgba(188,140,255,.1);color:var(--purple);border:0.5px solid rgba(188,140,255,.2)}
+.act-btns{display:flex;gap:5px;justify-content:center}
+.ibtn{background:none;border:0.5px solid var(--bd2);color:var(--tx3);border-radius:4px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:all .12s}
+.ibtn:hover{background:rgba(255,255,255,.06);color:var(--tx1)}
+.ibtn.del:hover{background:rgba(248,81,73,.15);color:var(--red);border-color:#5a1a1a}
+.ibtn.edt:hover{background:rgba(74,158,255,.1);color:var(--blue)}
+.aitem{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:0.5px solid rgba(30,37,48,.4)}
+.aitem:last-child{border-bottom:none}
+.aico{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.aico-blue{background:rgba(74,158,255,.12);color:var(--blue)}
+.aico-green{background:rgba(63,185,80,.12);color:var(--green)}
+.aico-red{background:rgba(248,81,73,.12);color:var(--red)}
+.aico-amber{background:rgba(210,153,34,.12);color:var(--amber)}
+.ainfo-title{font-size:12.5px;color:var(--tx1);font-weight:500}
+.ainfo-sub{font-size:11px;color:var(--tx3);margin-top:2px}
+.atime{font-size:10px;color:var(--tx3);font-family:var(--fm);white-space:nowrap;margin-top:4px}
+
+/* MRP */
+.mrp-config{background:var(--bg2);border:0.5px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:16px}
+.mrp-config-title{font-size:13px;font-weight:700;color:var(--tx1);margin-bottom:12px}
+.mrp-config-row{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.toggle-wrap{display:flex;align-items:center;gap:9px;cursor:pointer}
+.toggle{width:40px;height:22px;border-radius:11px;background:var(--bd2);position:relative;transition:background .2s;cursor:pointer;flex-shrink:0;border:none;outline:none}
+.toggle.on{background:var(--blue)}
+.toggle::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on::after{left:21px}
+.toggle-label{font-size:12.5px;color:var(--tx2)}
+.mrp-formula{font-size:11px;color:var(--tx3);margin-top:10px;font-family:var(--fm);padding:8px 12px;background:var(--bg3);border-radius:5px;border-left:2px solid var(--blue)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal{background:var(--bg2);border:0.5px solid var(--bd2);border-radius:10px;width:400px;overflow:hidden;max-height:90vh;display:flex;flex-direction:column}
+.mhd{padding:14px 18px;border-bottom:0.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.mhd-title{font-size:14px;font-weight:700;color:var(--tx1)}
+.mclose{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:18px;padding:0;line-height:1}
+.mclose:hover{color:var(--tx1)}
+.mbody{padding:18px;display:flex;flex-direction:column;gap:13px;overflow-y:auto;scrollbar-width:thin}
+.fg{display:flex;flex-direction:column;gap:5px}
+.flbl{font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--tx3);text-transform:uppercase}
+.finp,.fsel{background:var(--bg3);border:0.5px solid var(--bd);border-radius:6px;padding:8px 11px;font-size:12.5px;color:var(--tx1);font-family:'Syne',sans-serif;outline:none;width:100%;transition:border-color .15s}
+.finp:focus,.fsel:focus{border-color:rgba(74,158,255,.4)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mft{padding:13px 18px;border-top:0.5px solid var(--bd);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg3);border:0.5px solid rgba(74,158,255,.3);color:var(--blue);border-radius:8px;padding:10px 16px;font-size:12.5px;z-index:300;opacity:0;pointer-events:none;transition:opacity .2s;font-weight:500;max-width:300px}
+.toast.show{opacity:1}
+
+/* RC CARDS */
+.rc-card{background:var(--bg2);border:0.5px solid var(--bd);border-radius:8px;padding:14px 16px}
+.rc-title{font-size:10px;font-weight:700;color:var(--tx3);letter-spacing:.08em;margin-bottom:5px;text-transform:uppercase}
+.rc-val{font-size:22px;font-weight:700;color:var(--tx1);font-family:var(--fm)}
+.rc-sub{font-size:10.5px;color:var(--tx3);margin-top:3px}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="slogo">
+    <div class="slogo-ico">&#9783;</div>
+    <div>
+      <div class="slogo-txt">ERP · PCP</div>
+      <div class="slogo-sub">Manufatura v2</div>
+    </div>
+  </div>
+  <div class="ssec">Planejamento</div>
+  <div class="ni" onclick="nav(this,'dashboard')"><span class="ni-ico">&#9638;</span> Dashboard</div>
+  <div class="ni" onclick="nav(this,'plano')"><span class="ni-ico">&#9783;</span> Plano Mestre</div>
+  <div class="ni" onclick="nav(this,'mrp')"><span class="ni-ico">&#9109;</span> MRP <span class="ni-badge red">3</span></div>
+  <div class="ni" onclick="nav(this,'crp')"><span class="ni-ico">&#9112;</span> CRP</div>
+  <div class="ssec">Cadastros</div>
+  <div class="ni" onclick="nav(this,'produtos')"><span class="ni-ico">&#9723;</span> Produtos</div>
+  <div class="ni on" onclick="nav(this,'bom')"><span class="ni-ico">&#9783;</span> BOM <span class="ni-badge">12</span></div>
+  <div class="ni" onclick="nav(this,'estoque')"><span class="ni-ico">&#9707;</span> Estoque <span class="ni-badge red">2</span></div>
+  <div class="ni" onclick="nav(this,'recursos')"><span class="ni-ico">&#9881;</span> Recursos</div>
+  <div class="ni" onclick="nav(this,'custos')"><span class="ni-ico">&#9654;</span> Custos</div>
+  <div class="suser">
+    <div class="suser-inner">
+      <div class="avatar">FC</div>
+      <div>
+        <div class="uname">Fernando Calente</div>
+        <div class="urole">Admin · PCP</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title" id="page-title">Bill of Materials</div>
+      <div class="tb-crumb" id="page-crumb">ERP / PCP / BOM</div>
+    </div>
+    <div class="tb-right">
+      <div class="sbar"><span class="sico">&#128269;</span><input class="sinp" id="searchInp" placeholder="Filtrar..." oninput="handleSearch(this.value)"></div>
+      <select class="sel" id="filterSel" onchange="handleFilter(this.value)">
+        <option value="">Todos</option>
+        <option value="skate">Skate</option>
+        <option value="bicicleta">Bicicleta</option>
+        <option value="cadeira">Cadeira</option>
+      </select>
+      <button class="btn btn-ghost" onclick="exportCSV()">&#8595; CSV</button>
+      <button class="btn btn-blue" onclick="openBomModal()">+ Nova Entrada</button>
+    </div>
+  </div>
+  <div class="tab-bar" id="tabBar">
+    <div class="tab on" onclick="switchTab(this,'overview')">Visão Geral</div>
+    <div class="tab" onclick="switchTab(this,'bom')">BOM</div>
+    <div class="tab" onclick="switchTab(this,'estoque')">Estoque</div>
+    <div class="tab" onclick="switchTab(this,'mrp')">Cálculo MRP</div>
+    <div class="tab" onclick="switchTab(this,'plano')">Plano Mestre</div>
+    <div class="tab" onclick="switchTab(this,'recursos')">Recursos</div>
+    <div class="tab" onclick="switchTab(this,'custos')">Custos</div>
+    <div class="tab" onclick="switchTab(this,'atividade')">Atividade</div>
+  </div>
+  <div class="content" id="mainContent"></div>
+</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal" style="display:none">
+  <div class="modal">
+    <div class="mhd"><span class="mhd-title" id="modal-title">Nova Entrada</span><button class="mclose" onclick="closeModal()">&#10005;</button></div>
+    <div class="mbody" id="modal-body"></div>
+    <div class="mft" id="modal-footer"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DB={
+  bom:[
+    {id:1,pai:'skate',comp:'deck (shape)',qty:1,unit:'un',custo:85,lead:14,status:'ok'},
+    {id:2,pai:'skate',comp:'eixo (truck)',qty:2,unit:'un',custo:45,lead:7,status:'ok'},
+    {id:3,pai:'skate',comp:'rodas',qty:4,unit:'un',custo:12,lead:5,status:'ok'},
+    {id:4,pai:'skate',comp:'rolamentos',qty:8,unit:'un',custo:8,lead:10,status:'warn'},
+    {id:5,pai:'skate',comp:'parafusos m5',qty:8,unit:'un',custo:1.5,lead:3,status:'ok'},
+    {id:6,pai:'skate',comp:'lixa antiderrapante',qty:1,unit:'un',custo:15,lead:5,status:'ok'},
+    {id:7,pai:'bicicleta',comp:'quadro alumínio',qty:1,unit:'un',custo:320,lead:21,status:'ok'},
+    {id:8,pai:'bicicleta',comp:'corrente 8v',qty:1,unit:'un',custo:38,lead:7,status:'ok'},
+    {id:9,pai:'bicicleta',comp:'pneus 26"',qty:2,unit:'un',custo:55,lead:7,status:'warn'},
+    {id:10,pai:'bicicleta',comp:'câmbio traseiro',qty:1,unit:'un',custo:180,lead:14,status:'ok'},
+    {id:11,pai:'cadeira',comp:'parafusos m8',qty:8,unit:'un',custo:0.8,lead:3,status:'ok'},
+    {id:12,pai:'cadeira',comp:'espuma d28',qty:2,unit:'kg',custo:22,lead:10,status:'ok'},
+  ],
+  estoque:[
+    {id:1,prod:'deck (shape)',estoque:12,minimo:5,maximo:30,reservado:4,status:'ok',loc:'A-01'},
+    {id:2,prod:'eixo (truck)',estoque:3,minimo:4,maximo:20,reservado:2,status:'err',loc:'A-02'},
+    {id:3,prod:'rodas',estoque:20,minimo:8,maximo:50,reservado:8,status:'ok',loc:'A-03'},
+    {id:4,prod:'rolamentos',estoque:5,minimo:10,maximo:60,reservado:0,status:'warn',loc:'B-01'},
+    {id:5,prod:'parafusos m5',estoque:200,minimo:50,maximo:500,reservado:16,status:'ok',loc:'C-01'},
+    {id:6,prod:'lixa antiderrapante',estoque:8,minimo:5,maximo:25,reservado:3,status:'ok',loc:'A-04'},
+    {id:7,prod:'pneus 26"',estoque:2,minimo:4,maximo:20,reservado:2,status:'err',loc:'B-02'},
+    {id:8,prod:'quadro alumínio',estoque:7,minimo:3,maximo:15,reservado:2,status:'ok',loc:'D-01'},
+  ],
+  produtos:[
+    {id:1,cod:'SKT-001',nome:'Skate Completo',tipo:'produto_final',preco:350,ativo:true},
+    {id:2,cod:'BCL-001',nome:'Bicicleta MTB 26"',tipo:'produto_final',preco:1200,ativo:true},
+    {id:3,cod:'CAD-001',nome:'Cadeira Ergonômica',tipo:'produto_final',preco:480,ativo:true},
+    {id:4,cod:'CMP-001',nome:'Deck (Shape)',tipo:'componente',preco:85,ativo:true},
+    {id:5,cod:'CMP-002',nome:'Eixo (Truck)',tipo:'componente',preco:45,ativo:true},
+    {id:6,cod:'CMP-003',nome:'Rodas 52mm',tipo:'componente',preco:12,ativo:true},
+  ],
+  plano:[
+    {id:1,produto:'SKT-001',mes:'Mai/25',qtd:20,status:'confirmado'},
+    {id:2,produto:'BCL-001',mes:'Mai/25',qtd:8,status:'confirmado'},
+    {id:3,produto:'SKT-001',mes:'Jun/25',qtd:30,status:'rascunho'},
+    {id:4,produto:'CAD-001',mes:'Jun/25',qtd:15,status:'rascunho'},
+  ],
+  recursos:[
+    {id:1,nome:'Linha Montagem A',tipo:'maquina',capacidade:480,ocupado:320,custo_hr:45,status:'ok'},
+    {id:2,nome:'Linha Montagem B',tipo:'maquina',capacidade:480,ocupado:460,custo_hr:45,status:'warn'},
+    {id:3,nome:'Operador CNC',tipo:'mao_obra',capacidade:440,ocupado:200,custo_hr:28,status:'ok'},
+    {id:4,nome:'Inspeção QA',tipo:'mao_obra',capacidade:220,ocupado:180,custo_hr:22,status:'warn'},
+    {id:5,nome:'Prensa Hidráulica',tipo:'maquina',capacidade:300,ocupado:50,custo_hr:60,status:'ok'},
+  ],
+  atividade:[
+    {tipo:'blue',ico:'&#10010;',titulo:'BOM atualizada',sub:'Componente "rolamentos" adicionado ao skate',time:'há 12 min'},
+    {tipo:'green',ico:'&#9650;',titulo:'Estoque recebido',sub:'50 un de parafusos m5 — NF 4821',time:'há 1h'},
+    {tipo:'red',ico:'&#9650;',titulo:'Alerta de estoque',sub:'Eixo (truck) abaixo do mínimo — 3/4 un',time:'há 2h'},
+    {tipo:'amber',ico:'&#9783;',titulo:'MRP executado',sub:'3 pedidos de compra gerados automaticamente',time:'há 3h'},
+    {tipo:'blue',ico:'&#9881;',titulo:'Ordem de produção',sub:'OP-2024-047 — 5 skates — iniciada',time:'há 5h'},
+    {tipo:'green',ico:'&#10010;',titulo:'Produto cadastrado',sub:'Bicicleta MTB 26" adicionada ao sistema',time:'há 1 dia'},
+    {tipo:'red',ico:'&#9650;',titulo:'Alerta MRP',sub:'Lead time de pneus 26" excede necessidade',time:'há 1 dia'},
+    {tipo:'amber',ico:'&#9654;',titulo:'Custo atualizado',sub:'Deck shape: R$85,00 → R$92,00 (+8,2%)',time:'há 2 dias'},
+  ]
+};
+
+let mrpCfg={usarEstoqueInicial:true,incluirSeguranca:false};
+let curTab='overview',searchStr='',filterStr='',modalEditId=null;
+
+function nav(el,page){
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  el.classList.add('on');
+  const titles={dashboard:'Dashboard',plano:'Plano Mestre de Produção',mrp:'Cálculo MRP',crp:'CRP — Capacidade',produtos:'Produtos',bom:'Bill of Materials',estoque:'Estoque',recursos:'Recursos',custos:'Custos'};
+  document.getElementById('page-title').textContent=titles[page]||page;
+  document.getElementById('page-crumb').textContent='ERP / PCP / '+(titles[page]||page);
+  searchStr='';filterStr='';
+  document.getElementById('searchInp').value='';
+  document.getElementById('filterSel').value='';
+  const tabMap={bom:'bom',estoque:'estoque',mrp:'mrp',plano:'plano',recursos:'recursos',custos:'custos',crp:'crp',produtos:'produtos'};
+  const t=tabMap[page]||'overview';
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(x=>{if(x.getAttribute('onclick')&&x.getAttribute('onclick').includes(`'${t}'`))x.classList.add('on');});
+  curTab=t;renderTab(t);
+}
+function switchTab(el,tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');curTab=tab;searchStr='';filterStr='';
+  document.getElementById('searchInp').value='';renderTab(tab);
+}
+function handleSearch(v){searchStr=v.toLowerCase();renderTab(curTab);}
+function handleFilter(v){filterStr=v.toLowerCase();renderTab(curTab);}
+
+function renderTab(tab){
+  const c=document.getElementById('mainContent');
+  const map={overview:buildOverview,bom:buildBOM,estoque:buildEstoque,mrp:buildMRP,plano:buildPlano,recursos:buildRecursos,custos:buildCustos,atividade:buildAtividade,dashboard:buildOverview,crp:buildCRP,produtos:buildProdutos};
+  c.innerHTML=(map[tab]||buildOverview)();
+}
+
+function buildOverview(){
+  const totalComp=DB.bom.length,prodPais=[...new Set(DB.bom.map(r=>r.pai))].length;
+  const custoTotal=DB.bom.reduce((a,r)=>a+r.custo*r.qty,0);
+  const alertas=DB.estoque.filter(e=>e.status!=='ok').length;
+  const pais=[...new Set(DB.bom.map(r=>r.pai))];
+  const ok=DB.estoque.filter(e=>e.status==='ok').length,warn=DB.estoque.filter(e=>e.status==='warn').length,err=DB.estoque.filter(e=>e.status==='err').length,tot=DB.estoque.length;
+  const c=2*Math.PI*26;let off=0;
+  const segs=[[ok/tot*c,'var(--green)'],[warn/tot*c,'var(--amber)'],[err/tot*c,'var(--red)']];
+  const donutSVG=segs.map(([d,col])=>{const s=`<circle cx="38" cy="38" r="26" fill="none" stroke="${col}" stroke-width="13" stroke-dasharray="${d.toFixed(1)} ${c.toFixed(1)}" stroke-dashoffset="${(-off).toFixed(1)}" transform="rotate(-90 38 38)"/>`;off+=d;return s;}).join('');
+  return`<div class="stats-grid">
+    <div class="scard"><div class="scard-label">Produtos Pai</div><div class="scard-val">${prodPais}</div><div class="scard-sub" style="color:var(--blue)">ativos na BOM</div><div class="scard-bar" style="width:60%"></div></div>
+    <div class="scard"><div class="scard-label">Total Componentes</div><div class="scard-val">${totalComp}</div><div class="scard-sub" style="color:var(--green)">mapeados</div><div class="scard-bar" style="width:80%;background:var(--green)"></div></div>
+    <div class="scard"><div class="scard-label">Custo Total BOM</div><div class="scard-val" style="font-size:18px">R$${Math.round(custoTotal)}</div><div class="scard-sub" style="color:var(--amber)">soma componentes</div><div class="scard-bar" style="width:45%;background:var(--amber)"></div></div>
+    <div class="scard"><div class="scard-label">Alertas Estoque</div><div class="scard-val" style="color:${alertas>0?'var(--red)':'var(--green)'}">${alertas}</div><div class="scard-sub" style="color:${alertas>0?'var(--red)':'var(--green)'}">itens críticos</div><div class="scard-bar" style="width:${alertas*20}%;background:var(--red)"></div></div>
+  </div>
+  <div class="two-col">
+    <div class="chart-card"><div class="chart-title">Componentes por Produto Pai</div><div class="bar-chart">${pais.map(p=>{const cnt=DB.bom.filter(r=>r.pai===p).length;const h=Math.round(cnt/8*72);const col={'skate':'var(--blue)','bicicleta':'var(--purple)','cadeira':'var(--amber)'}[p]||'var(--blue)';return`<div class="bar-wrap"><div class="bar" style="height:${h}px;background:${col}"></div><div class="bar-lbl">${p}<br>${cnt}</div></div>`;}).join('')}</div></div>
+    <div class="chart-card"><div class="chart-title">Status Estoque</div><div class="donut-wrap"><svg width="76" height="76" viewBox="0 0 76 76">${donutSVG}</svg><div class="donut-legend"><div class="dl-item"><span class="dl-dot" style="background:var(--green)"></span>Normal (${ok})</div><div class="dl-item"><span class="dl-dot" style="background:var(--amber)"></span>Alerta (${warn})</div><div class="dl-item"><span class="dl-dot" style="background:var(--red)"></span>Crítico (${err})</div></div></div></div>
+  </div>
+  <div class="section-hd"><span class="section-title">Atividade Recente</span></div>
+  <div class="chart-card">${DB.atividade.slice(0,5).map(a=>`<div class="aitem"><div class="aico aico-${a.tipo}">${a.ico}</div><div style="flex:1"><div class="ainfo-title">${a.titulo}</div><div class="ainfo-sub">${a.sub}</div></div><div class="atime">${a.time}</div></div>`).join('')}</div>`;
+}
+
+function buildBOM(){
+  let rows=DB.bom.filter(r=>(!searchStr||(r.pai.includes(searchStr)||r.comp.includes(searchStr)))&&(!filterStr||r.pai===filterStr));
+  let lastPai=null;
+  return`<div class="section-hd"><span class="section-title">Estrutura BOM (${rows.length} registros)</span><button class="btn btn-blue" style="font-size:11.5px;padding:6px 12px" onclick="openBomModal()">+ Novo Componente</button></div>
+  <div class="tbl-wrap"><div class="tbl-head" style="grid-template-columns:1fr 1.2fr 90px 100px 90px 80px"><span class="th">Produto Pai</span><span class="th">Componente</span><span class="th c">Qtd/Und</span><span class="th c">Custo Total</span><span class="th c">Status</span><span class="th c">Ações</span></div>
+  ${rows.length?rows.map(r=>{const show=r.pai!==lastPai;lastPai=r.pai;const pT={ok:'p-ok',warn:'p-warn',err:'p-err'}[r.status];const pL={ok:'Normal',warn:'Atenção',err:'Crítico'}[r.status];return`<div class="tbl-row" style="grid-template-columns:1fr 1.2fr 90px 100px 90px 80px"><div class="cell">${show?`<span class="pbadge">${r.pai}</span>`:''}</div><div class="cell"><span class="cname"><span class="cdot"></span>${r.comp}</span></div><div class="cell c"><span class="qbadge">${r.qty} ${r.unit}</span></div><div class="cell c" style="font-family:var(--fm);font-size:11.5px;color:var(--amber)">R$${(r.qty*r.custo).toFixed(2)}</div><div class="cell c"><span class="pill ${pT}">${pL}</span></div><div class="cell c act-btns"><button class="ibtn edt" onclick="openBomModal(${r.id})">&#9998;</button><button class="ibtn del" onclick="delBom(${r.id})">&#10005;</button></div></div>`;}).join(''):'<div style="padding:24px;text-align:center;font-size:13px;color:var(--tx3)">Nenhum registro encontrado</div>'}
+  </div>`;
+}
+
+function buildEstoque(){
+  const pilC={ok:'p-ok',warn:'p-warn',err:'p-err'};const pilT={ok:'Normal',warn:'Mínimo',err:'Crítico'};
+  const val=DB.estoque.reduce((a,e)=>{const b=DB.bom.find(b=>b.comp===e.prod);return a+(b?b.custo*e.estoque:0);},0);
+  return`<div class="three-col">
+    <div class="rc-card"><div class="rc-title">Itens Cadastrados</div><div class="rc-val">${DB.estoque.length}</div><div class="rc-sub">no almoxarifado</div></div>
+    <div class="rc-card"><div class="rc-title">Valor Estimado</div><div class="rc-val" style="font-size:18px">R$${Math.round(val).toLocaleString('pt-BR')}</div><div class="rc-sub" style="color:var(--green)">em estoque</div></div>
+    <div class="rc-card"><div class="rc-title">Reposição Urgente</div><div class="rc-val" style="color:var(--red)">${DB.estoque.filter(e=>e.status==='err').length}</div><div class="rc-sub" style="color:var(--red)">pedidos pendentes</div></div>
+  </div>
+  <div class="section-hd"><span class="section-title">Posição de Estoque</span><button class="btn btn-green" style="font-size:11.5px;padding:6px 12px" onclick="openEstModal()">+ Lançar Entrada</button></div>
+  <div class="tbl-wrap"><div class="tbl-head" style="grid-template-columns:1.3fr 80px 80px 80px 90px 100px 80px"><span class="th">Produto</span><span class="th c">Estoque</span><span class="th c">Mínimo</span><span class="th c">Reservado</span><span class="th c">Local</span><span class="th c">Ocupação</span><span class="th c">Status</span></div>
+  ${DB.estoque.map(e=>{const pct=Math.min(100,Math.round(e.estoque/e.maximo*100));const col=e.status==='ok'?'var(--green)':e.status==='warn'?'var(--amber)':'var(--red)';return`<div class="tbl-row" style="grid-template-columns:1.3fr 80px 80px 80px 90px 100px 80px"><div class="cell" style="color:var(--tx1)">${e.prod}</div><div class="cell c" style="font-family:var(--fm);color:${col};font-weight:500">${e.estoque}</div><div class="cell c" style="font-family:var(--fm);color:var(--tx3)">${e.minimo}</div><div class="cell c" style="font-family:var(--fm);color:var(--amber)">${e.reservado}</div><div class="cell c" style="font-size:11px;color:var(--tx3)">${e.loc}</div><div class="cell c"><div style="display:flex;flex-direction:column;gap:3px;width:80px"><div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${col}"></div></div><span style="font-size:9.5px;color:${col};font-family:var(--fm);text-align:center">${pct}%</span></div></div><div class="cell c"><span class="pill ${pilC[e.status]}">${pilT[e.status]}</span></div></div>`;}).join('')}</div>`;
+}
+
+function buildMRP(){
+  const rows=calcMRP().filter(r=>!searchStr||r.comp.toLowerCase().includes(searchStr));
+  const formula=mrpCfg.usarEstoqueInicial?(mrpCfg.incluirSeguranca?'Nec. líquida = Bruta − (Saldo + Inicial − Segurança)':'Nec. líquida = Bruta − (Saldo + Inicial)'):(mrpCfg.incluirSeguranca?'Nec. líquida = Bruta − (Saldo − Segurança)':'Nec. líquida = Bruta − Saldo');
+  const pilC={ok:'p-ok',warn:'p-warn',pendente:'p-info',critico:'p-err'};
+  const pilT={ok:'Coberto',warn:'Alerta',pendente:'Pendente',critico:'Crítico'};
+  return`<div style="margin-bottom:10px"><div style="font-size:11px;color:var(--tx3);font-family:var(--fm)">Necessidade bruta × estoque inicial/segurança → necessidade líquida</div></div>
+  <div class="mrp-config"><div class="mrp-config-title">Configuração MRP</div>
+    <div class="mrp-config-row">
+      <div class="toggle-wrap" onclick="toggleMRP('usarEstoqueInicial')"><button class="toggle ${mrpCfg.usarEstoqueInicial?'on':''}"></button><span class="toggle-label">Usar estoque inicial no abate</span></div>
+      <div class="toggle-wrap" onclick="toggleMRP('incluirSeguranca')"><button class="toggle ${mrpCfg.incluirSeguranca?'on':''}"></button><span class="toggle-label">Incluir estoque de segurança (reserva mínima)</span></div>
+    </div>
+    <div class="mrp-formula">${formula}</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+    <div class="sbar" style="flex:1"><span class="sico">&#128269;</span><input class="sinp" style="width:100%" placeholder="Filtrar componente..." oninput="handleSearch(this.value)" value="${searchStr}"></div>
+    <button class="btn btn-blue" onclick="runMRP()">&#9654; Executar MRP</button>
+    <button class="btn btn-ghost" onclick="exportMRP()">&#8595; Exportar</button>
+    <span style="font-size:11px;color:var(--tx3);font-family:var(--fm)">${rows.length} reg.</span>
+  </div>
+  <div class="tbl-wrap"><div class="tbl-head" style="grid-template-columns:1.5fr 85px 85px 90px 90px 100px 90px 90px"><span class="th">Componente</span><span class="th c">Nec. Bruta</span><span class="th c">Saldo</span><span class="th c">Inicial</span><span class="th c">Segurança</span><span class="th c">Nec. Líquida</span><span class="th c">Lead Time</span><span class="th c">Status</span></div>
+  ${rows.length?rows.map(r=>{const nlCol=r.nec_liq>0?'var(--red)':r.nec_liq===0?'var(--tx3)':'var(--green)';return`<div class="tbl-row" style="grid-template-columns:1.5fr 85px 85px 90px 90px 100px 90px 90px"><div class="cell" style="color:var(--tx1)">${r.comp}</div><div class="cell c" style="font-family:var(--fm)">${r.bruta}</div><div class="cell c" style="font-family:var(--fm);color:var(--tx2)">${r.saldo}</div><div class="cell c" style="font-family:var(--fm);color:var(--tx3)">${r.inicial}</div><div class="cell c" style="font-family:var(--fm);color:var(--amber)">${r.seguranca}</div><div class="cell c"><span style="font-family:var(--fm);font-size:13px;font-weight:700;color:${nlCol}">${r.nec_liq>0?r.nec_liq:'—'}</span></div><div class="cell c" style="font-family:var(--fm);font-size:11.5px;color:var(--tx3)">${r.lead}d</div><div class="cell c"><span class="pill ${pilC[r.status]||'p-ok'}">${pilT[r.status]||'OK'}</span></div></div>`;}).join(''):'<div style="padding:24px;text-align:center;font-size:13px;color:var(--tx3)">Configure produtos, BOM e PMP para calcular o MRP.</div>'}
+  </div>`;
+}
+
+function calcMRP(){
+  const pmpPorPai={};
+  DB.plano.forEach(p=>{const nome={'SKT-001':'skate','BCL-001':'bicicleta','CAD-001':'cadeira'}[p.produto]||'';if(!pmpPorPai[nome])pmpPorPai[nome]=0;pmpPorPai[nome]+=p.qtd;});
+  const compMap={};
+  DB.bom.forEach(b=>{if(!compMap[b.comp])compMap[b.comp]={comp:b.comp,bruta:0,lead:b.lead};const dem=pmpPorPai[b.pai]||10;compMap[b.comp].bruta+=dem*b.qty;});
+  return Object.values(compMap).map(c=>{
+    const est=DB.estoque.find(e=>e.prod===c.comp)||{estoque:0,minimo:0,reservado:0};
+    const saldo=Math.max(0,est.estoque-est.reservado);
+    const inicial=mrpCfg.usarEstoqueInicial?saldo:0;
+    const seg=mrpCfg.incluirSeguranca?est.minimo:0;
+    const nl=Math.max(0,c.bruta-(saldo+inicial-seg));
+    const st=nl===0?'ok':nl<=c.bruta*0.3?'warn':'pendente';
+    return{...c,saldo:Math.max(0,est.estoque),inicial,seguranca:est.minimo,nec_liq:nl,status:st};
+  });
+}
+
+function toggleMRP(key){mrpCfg[key]=!mrpCfg[key];renderTab('mrp');toast('Configuração MRP atualizada');}
+function runMRP(){DB.atividade.unshift({tipo:'amber',ico:'&#9783;',titulo:'MRP executado',sub:'Necessidades líquidas recalculadas',time:'agora'});renderTab('mrp');toast('MRP executado — necessidades recalculadas!');}
+function exportMRP(){toast('Relatório MRP exportado!');}
+
+function buildPlano(){
+  const pilC={confirmado:'p-ok',rascunho:'p-warn'};
+  return`<div class="three-col">
+    <div class="rc-card"><div class="rc-title">Ordens Confirmadas</div><div class="rc-val">${DB.plano.filter(p=>p.status==='confirmado').length}</div><div class="rc-sub" style="color:var(--green)">no PMP</div></div>
+    <div class="rc-card"><div class="rc-title">Rascunhos</div><div class="rc-val" style="color:var(--amber)">${DB.plano.filter(p=>p.status==='rascunho').length}</div><div class="rc-sub">aguardando confirmação</div></div>
+    <div class="rc-card"><div class="rc-title">Total Unidades</div><div class="rc-val">${DB.plano.reduce((a,p)=>a+p.qtd,0)}</div><div class="rc-sub">planejadas</div></div>
+  </div>
+  <div class="section-hd"><span class="section-title">Plano Mestre de Produção</span><button class="btn btn-blue" style="font-size:11.5px;padding:6px 12px" onclick="openPlanoModal()">+ Nova Ordem</button></div>
+  <div class="tbl-wrap"><div class="tbl-head" style="grid-template-columns:1fr 1fr 90px 110px 90px"><span class="th">Produto</span><span class="th c">Mês</span><span class="th c">Qtd</span><span class="th c">Status</span><span class="th c">Ações</span></div>
+  ${DB.plano.map(p=>`<div class="tbl-row" style="grid-template-columns:1fr 1fr 90px 110px 90px"><div class="cell"><span class="cname"><span class="cdot"></span>${p.produto}</span></div><div class="cell c" style="font-family:var(--fm);font-size:12px;color:var(--tx2)">${p.mes}</div><div class="cell c"><span class="qbadge">${p.qtd} un</span></div><div class="cell c"><span class="pill ${pilC[p.status]||'p-info'}">${p.status}</span></div><div class="cell c act-btns"><button class="ibtn edt" onclick="confirmPlano(${p.id})" title="Confirmar" style="color:var(--green)">&#10003;</button><button class="ibtn del" onclick="delPlano(${p.id})">&#10005;</button></div></div>`).join('')}</div>`;
+}
+function confirmPlano(id){const p=DB.plano.find(x=>x.id===id);if(p){p.status='confirmado';renderTab('plano');toast('Ordem confirmada no PMP!');}}
+function delPlano(id){DB.plano=DB.plano.filter(x=>x.id!==id);renderTab('plano');toast('Ordem removida do PMP');}
+
+function buildRecursos(){
+  const tipoL={maquina:'Máquina',mao_obra:'Mão de Obra'};
+  const total=DB.recursos.reduce((a,r)=>a+r.capacidade,0);
+  const usados=DB.recursos.reduce((a,r)=>a+r.ocupado,0);
+  const livre=total-usados;
+  const custoTotal=DB.recursos.reduce((a,r)=>a+r.custo_hr*r.capacidade,0);
+  const maquinas=DB.recursos.filter(r=>r.tipo==='maquina').length;
+  const maoObra=DB.recursos.filter(r=>r.tipo==='mao_obra').length;
+  const ocupGeral=Math.round(usados/total*100);
+  const colGeral=ocupGeral>90?'var(--red)':ocupGeral>75?'var(--amber)':'var(--green)';
+
+  const rows=DB.recursos.filter(r=>!searchStr||r.nome.toLowerCase().includes(searchStr));
+
+  return`
+  <!-- KPIs -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px">
+    <div class="scard"><div class="scard-label">Total Recursos</div><div class="scard-val">${DB.recursos.length}</div><div class="scard-sub" style="color:var(--blue)">${maquinas} máq · ${maoObra} M.O.</div><div class="scard-bar" style="width:60%"></div></div>
+    <div class="scard"><div class="scard-label">Capacidade Total</div><div class="scard-val">${total}<span style="font-size:14px">h</span></div><div class="scard-sub" style="color:var(--tx3)">disponível/mês</div><div class="scard-bar" style="width:100%;background:var(--blue)"></div></div>
+    <div class="scard"><div class="scard-label">Horas Ocupadas</div><div class="scard-val" style="color:${colGeral}">${usados}<span style="font-size:14px">h</span></div><div class="scard-sub" style="color:${colGeral}">${ocupGeral}% da capacidade</div><div class="scard-bar" style="width:${ocupGeral}%;background:${colGeral}"></div></div>
+    <div class="scard"><div class="scard-label">Horas Livres</div><div class="scard-val" style="color:var(--green)">${livre}<span style="font-size:14px">h</span></div><div class="scard-sub" style="color:var(--tx3)">disponíveis</div><div class="scard-bar" style="width:${100-ocupGeral}%;background:var(--green)"></div></div>
+    <div class="scard"><div class="scard-label">Custo Capacidade</div><div class="scard-val" style="font-size:17px">R$${Math.round(custoTotal/1000)}k</div><div class="scard-sub" style="color:var(--amber)">custo mensal total</div><div class="scard-bar" style="width:70%;background:var(--amber)"></div></div>
+  </div>
+
+  <!-- Gráfico de barras de utilização -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:16px">
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-title">Utilização por Recurso (horas)</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
+        ${DB.recursos.map(r=>{
+          const pct=Math.round(r.ocupado/r.capacidade*100);
+          const col=pct>90?'var(--red)':pct>75?'var(--amber)':'var(--green)';
+          const livre=r.capacidade-r.ocupado;
+          return`<div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+              <div>
+                <span style="font-size:12.5px;color:var(--tx1);font-weight:500">${r.nome}</span>
+                <span style="font-size:10px;color:var(--tx3);margin-left:8px">${tipoL[r.tipo]}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <span style="font-size:11px;font-family:var(--fm);color:var(--tx3)">${r.ocupado}h / ${r.capacidade}h</span>
+                <span style="font-size:12px;font-family:var(--fm);font-weight:700;color:${col}">${pct}%</span>
+              </div>
+            </div>
+            <div style="position:relative;height:10px;background:var(--bd);border-radius:5px;overflow:hidden">
+              <div style="position:absolute;left:0;top:0;height:100%;width:${pct}%;background:${col};border-radius:5px;transition:width .3s"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:3px">
+              <span style="font-size:9.5px;color:${col};font-family:var(--fm)">Ocupado: ${r.ocupado}h</span>
+              <span style="font-size:9.5px;color:var(--green);font-family:var(--fm)">Livre: ${livre}h</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-title">Custo por Recurso (R$/mês)</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+        ${DB.recursos.map(r=>{
+          const custo=r.custo_hr*r.capacidade;
+          const pct=Math.round(custo/custoTotal*100);
+          return`<div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:11px;color:var(--tx2);min-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.nome}</span>
+            <div style="flex:1;height:6px;background:var(--bd);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:var(--purple);border-radius:3px"></div>
+            </div>
+            <span style="font-size:10.5px;font-family:var(--fm);color:var(--amber);min-width:52px;text-align:right">R$${Math.round(custo/1000)}k</span>
+          </div>`;
+        }).join('')}
+        <div style="border-top:0.5px solid var(--bd);padding-top:8px;margin-top:2px;display:flex;justify-content:space-between">
+          <span style="font-size:11px;color:var(--tx3)">Total Mensal</span>
+          <span style="font-size:12px;font-family:var(--fm);font-weight:700;color:var(--amber)">R$${Math.round(custoTotal/1000)}k</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela operante com edição e exclusão -->
+  <div class="section-hd">
+    <span class="section-title">Recursos de Produção (${rows.length})</span>
+    <div style="display:flex;gap:8px">
+      <div class="sbar"><span class="sico">&#128269;</span><input class="sinp" placeholder="Filtrar recurso..." oninput="handleSearch(this.value)" value="${searchStr}"></div>
+      <button class="btn btn-blue" style="font-size:11.5px;padding:6px 12px" onclick="openRecModal()">+ Novo Recurso</button>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="tbl-head" style="grid-template-columns:1.6fr 110px 90px 90px 90px 90px 110px 90px">
+      <span class="th">Recurso</span><span class="th c">Tipo</span><span class="th c">Cap. (h)</span><span class="th c">Ocupado</span><span class="th c">Livre</span><span class="th c">Custo/h</span><span class="th c">Utilização</span><span class="th c">Ações</span>
+    </div>
+    ${rows.length?rows.map(r=>{
+      const pct=Math.round(r.ocupado/r.capacidade*100);
+      const col=pct>90?'var(--red)':pct>75?'var(--amber)':'var(--green)';
+      const livre=r.capacidade-r.ocupado;
+      const custo_mes=r.custo_hr*r.capacidade;
+      return`<div class="tbl-row" style="grid-template-columns:1.6fr 110px 90px 90px 90px 90px 110px 90px">
+        <div class="cell">
+          <div>
+            <div style="color:var(--tx1);font-size:12.5px;font-weight:500">${r.nome}</div>
+            <div style="font-size:10px;color:var(--tx3);margin-top:1px">R$${Math.round(custo_mes/1000)}k/mês · R$${r.custo_hr}/h</div>
+          </div>
+        </div>
+        <div class="cell c"><span class="pill ${r.tipo==='maquina'?'p-info':'p-purple'}" style="font-size:10px">${tipoL[r.tipo]}</span></div>
+        <div class="cell c" style="font-family:var(--fm);font-size:12.5px">${r.capacidade}</div>
+        <div class="cell c" style="font-family:var(--fm);font-size:12.5px;color:${col};font-weight:500">${r.ocupado}</div>
+        <div class="cell c" style="font-family:var(--fm);font-size:12.5px;color:var(--green)">${livre}</div>
+        <div class="cell c" style="font-family:var(--fm);font-size:12.5px;color:var(--amber)">R$${r.custo_hr}</div>
+        <div class="cell c">
+          <div style="display:flex;flex-direction:column;gap:3px;width:90px">
+            <div style="height:6px;background:var(--bd);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${col};border-radius:3px"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-size:9px;color:var(--tx3);font-family:var(--fm)">${pct>90?'Crítico':pct>75?'Alerta':'OK'}</span>
+              <span style="font-size:9.5px;color:${col};font-family:var(--fm);font-weight:700">${pct}%</span>
+            </div>
+          </div>
+        </div>
+        <div class="cell c act-btns">
+          <button class="ibtn edt" onclick="openRecModal(${r.id})" title="Editar">&#9998;</button>
+          <button class="ibtn" onclick="alocarRec(${r.id})" title="Alocar horas" style="color:var(--green);border-color:rgba(63,185,80,.3)">&#43;</button>
+          <button class="ibtn del" onclick="delRec(${r.id})" title="Excluir">&#10005;</button>
+        </div>
+      </div>`;
+    }).join(''):'<div style="padding:24px;text-align:center;font-size:13px;color:var(--tx3)">Nenhum recurso encontrado</div>'}
+  </div>`;
+}
+
+function delRec(id){
+  if(DB.recursos.length<=1){toast('Precisa ter ao menos 1 recurso!');return;}
+  DB.recursos=DB.recursos.filter(x=>x.id!==id);
+  renderTab('recursos');
+  toast('Recurso removido');
+}
+
+function alocarRec(id){
+  const r=DB.recursos.find(x=>x.id===id);
+  document.getElementById('modal-title').textContent=`Alocar Horas — ${r.nome}`;
+  document.getElementById('modal-body').innerHTML=`
+    <div style="background:var(--bg3);border-radius:6px;padding:10px 14px;margin-bottom:4px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--tx3)">Capacidade total</span><span style="font-family:var(--fm);color:var(--tx1)">${r.capacidade}h</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--tx3)">Já ocupado</span><span style="font-family:var(--fm);color:var(--amber)">${r.ocupado}h</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:11px;color:var(--tx3)">Disponível</span><span style="font-family:var(--fm);color:var(--green)">${r.capacidade-r.ocupado}h</span>
+      </div>
+    </div>
+    <div class="fg"><label class="flbl">Horas a Alocar</label><input class="finp" id="f-aloc-h" type="number" min="1" max="${r.capacidade-r.ocupado}" placeholder="ex: 40"></div>
+    <div class="fg"><label class="flbl">Ordem / Motivo</label><input class="finp" id="f-aloc-ord" placeholder="ex: OP-2024-050"></div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-green" onclick="saveAlocacao(${id})">Alocar</button>`;
+  document.getElementById('modal').style.display='flex';
+}
+
+function saveAlocacao(id){
+  const h=parseInt(document.getElementById('f-aloc-h').value)||0;
+  const ord=document.getElementById('f-aloc-ord').value||'—';
+  const r=DB.recursos.find(x=>x.id===id);
+  if(h<=0){toast('Informe horas válidas!');return;}
+  if(r.ocupado+h>r.capacidade){toast(`Capacidade insuficiente! Máx disponível: ${r.capacidade-r.ocupado}h`);return;}
+  r.ocupado+=h;
+  const pct=Math.round(r.ocupado/r.capacidade*100);
+  r.status=pct>90?'err':pct>75?'warn':'ok';
+  DB.atividade.unshift({tipo:'blue',ico:'&#9881;',titulo:'Alocação de horas',sub:`${h}h alocadas em ${r.nome} — ${ord}`,time:'agora'});
+  closeModal();renderTab('recursos');
+  toast(`${h}h alocadas em ${r.nome}!`);
+}
+
+function buildCustos(){
+  const pais=[...new Set(DB.bom.map(r=>r.pai))];
+  const custosPorPai=pais.map(p=>{
+    const comps=DB.bom.filter(b=>b.pai===p);
+    const total=comps.reduce((a,c)=>a+c.qty*c.custo,0);
+    const prod=DB.produtos.find(x=>x.nome.toLowerCase().includes(p)||p.includes(x.nome.toLowerCase().split(' ')[0]));
+    const preco=prod?prod.preco:0;
+    const margem=preco>0?Math.round((preco-total)/preco*100):0;
+    return{pai:p,total,comps:comps.length,preco,margem};
+  });
+  const totalGeral=custosPorPai.reduce((a,c)=>a+c.total,0);
+  const recFiltrados=DB.bom.filter(b=>!searchStr||(b.pai.includes(searchStr)||b.comp.includes(searchStr)));
+
+  return`
+  <!-- KPIs financeiros -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+    <div class="scard">
+      <div class="scard-label">Custo Total BOM</div>
+      <div class="scard-val" style="font-size:19px">R$${Math.round(totalGeral).toLocaleString('pt-BR')}</div>
+      <div class="scard-sub" style="color:var(--amber)">todos os produtos</div>
+      <div class="scard-bar" style="width:100%;background:var(--amber)"></div>
+    </div>
+    ${custosPorPai.map(p=>{
+      const col=p.margem>40?'var(--green)':p.margem>20?'var(--amber)':'var(--red)';
+      return`<div class="scard">
+        <div class="scard-label">${p.pai}</div>
+        <div class="scard-val" style="font-size:19px">R$${Math.round(p.total)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <span style="font-size:10px;color:var(--tx3)">${p.comps} componentes</span>
+          <span style="font-size:11px;font-weight:700;color:${col}">▲${p.margem}% margem</span>
+        </div>
+        <div class="scard-bar" style="width:${Math.round(p.total/totalGeral*100)}%"></div>
+      </div>`;
+    }).join('')}
+  </div>
+
+  <!-- Análise de margem e custo por produto -->
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:12px;margin-bottom:16px">
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-title">Composição de Custo por Produto Pai</div>
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
+        ${custosPorPai.map(p=>{
+          const comps=DB.bom.filter(b=>b.pai===p.pai);
+          const cols=['var(--blue)','var(--purple)','var(--green)','var(--amber)','var(--red)','#06b6d4'];
+          return`<div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+              <span style="font-size:12.5px;color:var(--tx1);font-weight:500;text-transform:capitalize">${p.pai}</span>
+              <span style="font-size:11.5px;font-family:var(--fm);color:var(--amber);font-weight:600">R$${Math.round(p.total)}</span>
+            </div>
+            <div style="display:flex;height:14px;border-radius:4px;overflow:hidden;gap:1px">
+              ${comps.map((c,i)=>{
+                const w=Math.round(c.qty*c.custo/p.total*100);
+                return`<div style="width:${w}%;min-width:${w>3?0:0}px;background:${cols[i%cols.length]};position:relative;cursor:pointer" title="${c.comp}: R$${(c.qty*c.custo).toFixed(2)} (${w}%)"></div>`;
+              }).join('')}
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px">
+              ${comps.slice(0,4).map((c,i)=>`<span style="font-size:9px;color:var(--tx3);display:flex;align-items:center;gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:${cols[i%cols.length]};display:inline-block"></span>${c.comp}</span>`).join('')}
+              ${comps.length>4?`<span style="font-size:9px;color:var(--tx3)">+${comps.length-4} mais</span>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-title">Margem por Produto (Preço − Custo BOM)</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+        ${custosPorPai.map(p=>{
+          const col=p.margem>40?'var(--green)':p.margem>20?'var(--amber)':'var(--red)';
+          const margemR=p.preco-p.total;
+          return`<div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:12.5px;color:var(--tx1);text-transform:capitalize">${p.pai}</span>
+              <div style="text-align:right">
+                ${p.preco>0?`<span style="font-size:11px;font-family:var(--fm);color:${col};font-weight:700">${p.margem}%</span>
+                <span style="font-size:10px;color:var(--tx3);margin-left:6px">R$${Math.round(margemR)}</span>`:'<span style="font-size:10px;color:var(--tx3)">Sem preço</span>'}
+              </div>
+            </div>
+            <div style="display:flex;gap:3px;height:8px;border-radius:4px;overflow:hidden;background:var(--bd)">
+              <div style="width:${p.preco>0?Math.round(p.total/p.preco*100):100}%;background:var(--red);opacity:.7"></div>
+              ${p.preco>0&&p.margem>0?`<div style="width:${p.margem}%;background:${col}"></div>`:''}
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:3px">
+              <span style="font-size:9.5px;color:var(--tx3);font-family:var(--fm)">Custo: R$${Math.round(p.total)}</span>
+              ${p.preco>0?`<span style="font-size:9.5px;color:var(--tx3);font-family:var(--fm)">Preço: R$${p.preco}</span>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+
+        <div style="border-top:0.5px solid var(--bd);padding-top:10px">
+          <button class="btn btn-ghost" style="width:100%;font-size:11.5px" onclick="abrirEditarPrecos()">&#9998; Editar Preços de Venda</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela detalhada com filtro e edição -->
+  <div class="section-hd">
+    <span class="section-title">Custo Detalhado por Componente (${recFiltrados.length})</span>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="sbar"><span class="sico">&#128269;</span><input class="sinp" placeholder="Filtrar componente..." oninput="handleSearch(this.value)" value="${searchStr}"></div>
+      <button class="btn btn-ghost" style="font-size:11.5px;padding:6px 12px" onclick="exportCustoCSV()">&#8595; Exportar</button>
+    </div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="tbl-head" style="grid-template-columns:1fr 1.2fr 75px 100px 110px 110px 90px">
+      <span class="th">Produto Pai</span><span class="th">Componente</span><span class="th c">Qtd</span><span class="th c">Custo Unit.</span><span class="th c">Custo Total</span><span class="th c">% do Produto</span><span class="th c">Editar</span>
+    </div>
+    ${recFiltrados.length?recFiltrados.map(b=>{
+      const totPai=DB.bom.filter(x=>x.pai===b.pai).reduce((a,x)=>a+x.qty*x.custo,0);
+      const pct=Math.round(b.qty*b.custo/totPai*100);
+      const col=pct>40?'var(--red)':pct>20?'var(--amber)':'var(--green)';
+      return`<div class="tbl-row" style="grid-template-columns:1fr 1.2fr 75px 100px 110px 110px 90px">
+        <div class="cell"><span class="pbadge">${b.pai}</span></div>
+        <div class="cell"><span class="cname"><span class="cdot"></span>${b.comp}</span></div>
+        <div class="cell c" style="font-family:var(--fm);font-size:11.5px">${b.qty} ${b.unit}</div>
+        <div class="cell c">
+          <span id="custo-val-${b.id}" style="font-family:var(--fm);font-size:12px;color:var(--tx2)">R$${b.custo.toFixed(2)}</span>
+        </div>
+        <div class="cell c" style="font-family:var(--fm);font-weight:700;color:var(--amber)">R$${(b.qty*b.custo).toFixed(2)}</div>
+        <div class="cell c">
+          <div style="display:flex;flex-direction:column;gap:3px;width:90px">
+            <div style="height:6px;background:var(--bd);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${pct}%;background:${col};border-radius:3px"></div>
+            </div>
+            <span style="font-size:9.5px;color:${col};font-family:var(--fm);text-align:center;font-weight:700">${pct}%</span>
+          </div>
+        </div>
+        <div class="cell c act-btns">
+          <button class="ibtn edt" onclick="editarCusto(${b.id})" title="Editar custo">&#9998;</button>
+        </div>
+      </div>`;
+    }).join(''):'<div style="padding:24px;text-align:center;font-size:13px;color:var(--tx3)">Nenhum componente encontrado</div>'}
+  </div>`;
+}
+
+function editarCusto(id){
+  const b=DB.bom.find(x=>x.id===id);
+  document.getElementById('modal-title').textContent=`Editar Custo — ${b.comp}`;
+  document.getElementById('modal-body').innerHTML=`
+    <div style="background:var(--bg3);border-radius:6px;padding:10px 14px;margin-bottom:4px">
+      <div style="font-size:11px;color:var(--tx3);margin-bottom:4px">Produto pai: <strong style="color:var(--blue)">${b.pai}</strong></div>
+      <div style="font-size:11px;color:var(--tx3)">Quantidade: <strong style="color:var(--tx1)">${b.qty} ${b.unit}</strong></div>
+    </div>
+    <div class="fg"><label class="flbl">Novo Custo Unitário (R$)</label><input class="finp" id="f-nc" type="number" step="0.01" min="0" value="${b.custo}" placeholder="${b.custo}"></div>
+    <div class="fg"><label class="flbl">Fornecedor / Observação</label><input class="finp" id="f-nc-obs" placeholder="ex: Fornecedor ABC, cotação 2025"></div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="salvarCusto(${id})">Atualizar</button>`;
+  document.getElementById('modal').style.display='flex';
+}
+
+function salvarCusto(id){
+  const novo=parseFloat(document.getElementById('f-nc').value);
+  const obs=document.getElementById('f-nc-obs').value||'—';
+  if(isNaN(novo)||novo<0){toast('Informe um custo válido!');return;}
+  const b=DB.bom.find(x=>x.id===id);
+  const ant=b.custo;
+  b.custo=novo;
+  const delta=novo>ant?`+${((novo-ant)/ant*100).toFixed(1)}%`:`${((novo-ant)/ant*100).toFixed(1)}%`;
+  DB.atividade.unshift({tipo:'amber',ico:'&#9654;',titulo:'Custo atualizado',sub:`${b.comp}: R$${ant.toFixed(2)} → R$${novo.toFixed(2)} (${delta}) — ${obs}`,time:'agora'});
+  closeModal();renderTab('custos');
+  toast('Custo atualizado com sucesso!');
+}
+
+function abrirEditarPrecos(){
+  document.getElementById('modal-title').textContent='Editar Preços de Venda';
+  const prods=DB.produtos.filter(p=>p.tipo==='produto_final');
+  document.getElementById('modal-body').innerHTML=`
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:8px">Atualize os preços de venda para recalcular as margens automaticamente.</div>
+    ${prods.map(p=>`<div class="fg"><label class="flbl">${p.nome} (${p.cod})</label><input class="finp" id="preco-${p.id}" type="number" step="0.01" min="0" value="${p.preco}" placeholder="Preço de venda"></div>`).join('')}`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="salvarPrecos()">Salvar Preços</button>`;
+  document.getElementById('modal').style.display='flex';
+}
+
+function salvarPrecos(){
+  DB.produtos.filter(p=>p.tipo==='produto_final').forEach(p=>{
+    const inp=document.getElementById(`preco-${p.id}`);
+    if(inp){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)p.preco=v;}
+  });
+  closeModal();renderTab('custos');
+  toast('Preços de venda atualizados!');
+}
+
+function exportCustoCSV(){
+  const rows=DB.bom.map(b=>`${b.pai},${b.comp},${b.qty},${b.unit},${b.custo},${(b.qty*b.custo).toFixed(2)}`);
+  const csv='Produto Pai,Componente,Qtd,Unid,Custo Unit,Custo Total\n'+rows.join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='custos_bom.csv';a.click();
+  toast('Custos exportados em CSV!');
+}
+
+function buildCRP(){
+  return`<div class="section-hd"><span class="section-title">Capacidade x Carga — CRP</span></div>
+  <div class="chart-card"><div class="chart-title">Utilização por Recurso (%)</div><div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">
+  ${DB.recursos.map(r=>{const pct=Math.round(r.ocupado/r.capacidade*100);const col=pct>90?'var(--red)':pct>75?'var(--amber)':'var(--green)';return`<div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:12.5px;color:var(--tx2)">${r.nome}</span><span style="font-size:12px;font-family:var(--fm);color:${col}">${pct}%</span></div><div class="prog-bar" style="height:8px"><div class="prog-fill" style="width:${pct}%;background:${col}"></div></div></div>`;}).join('')}</div></div>`;
+}
+
+function buildProdutos(){
+  const tipoL={produto_final:'Produto Final',componente:'Componente'};
+  return`<div class="section-hd"><span class="section-title">Cadastro de Produtos (${DB.produtos.length})</span><button class="btn btn-blue" style="font-size:11.5px;padding:6px 12px" onclick="openProdModal()">+ Novo Produto</button></div>
+  <div class="tbl-wrap"><div class="tbl-head" style="grid-template-columns:100px 1.5fr 130px 90px 80px 80px"><span class="th">Código</span><span class="th">Nome</span><span class="th c">Tipo</span><span class="th c">Preço</span><span class="th c">Ativo</span><span class="th c">Ações</span></div>
+  ${DB.produtos.map(p=>`<div class="tbl-row" style="grid-template-columns:100px 1.5fr 130px 90px 80px 80px"><div class="cell" style="font-family:var(--fm);font-size:12px;color:var(--blue)">${p.cod}</div><div class="cell" style="color:var(--tx1)">${p.nome}</div><div class="cell c"><span class="pill ${p.tipo==='produto_final'?'p-ok':'p-purple'}" style="font-size:10px">${tipoL[p.tipo]||p.tipo}</span></div><div class="cell c" style="font-family:var(--fm);color:var(--amber)">R$${p.preco}</div><div class="cell c"><span class="pill ${p.ativo?'p-ok':'p-err'}">${p.ativo?'Ativo':'Inativo'}</span></div><div class="cell c act-btns"><button class="ibtn del" onclick="delProd(${p.id})">&#10005;</button></div></div>`).join('')}</div>`;
+}
+function delProd(id){DB.produtos=DB.produtos.filter(x=>x.id!==id);renderTab('produtos');toast('Produto removido');}
+
+function buildAtividade(){
+  return`<div class="section-hd"><span class="section-title">Log de Atividades</span></div>
+  <div class="chart-card">${DB.atividade.map(a=>`<div class="aitem"><div class="aico aico-${a.tipo}">${a.ico}</div><div style="flex:1"><div class="ainfo-title">${a.titulo}</div><div class="ainfo-sub">${a.sub}</div></div><div class="atime">${a.time}</div></div>`).join('')}</div>`;
+}
+
+/* MODAIS */
+function openBomModal(id){
+  modalEditId=id||null;
+  const r=id?DB.bom.find(x=>x.id===id):{};
+  const pais=[...new Set(DB.bom.map(x=>x.pai))];
+  document.getElementById('modal-title').textContent=id?'Editar Componente BOM':'Novo Componente BOM';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="fg"><label class="flbl">Produto Pai</label><input class="finp" id="f-pai" list="pais-list" value="${r.pai||''}"><datalist id="pais-list">${pais.map(p=>`<option value="${p}">`).join('')}</datalist></div>
+    <div class="fg"><label class="flbl">Componente</label><input class="finp" id="f-comp" value="${r.comp||''}"></div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Quantidade</label><input class="finp" id="f-qty" type="number" min="0.01" step="0.01" value="${r.qty||''}"></div>
+      <div class="fg"><label class="flbl">Unidade</label><select class="fsel" id="f-unit"><option ${r.unit==='un'?'selected':''}>un</option><option ${r.unit==='kg'?'selected':''}>kg</option><option ${r.unit==='m'?'selected':''}>m</option><option ${r.unit==='l'?'selected':''}>l</option><option ${r.unit==='pç'?'selected':''}>pç</option><option ${r.unit==='m²'?'selected':''}>m²</option></select></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Custo Unit. (R$)</label><input class="finp" id="f-custo" type="number" min="0" step="0.01" value="${r.custo||''}"></div>
+      <div class="fg"><label class="flbl">Lead Time (dias)</label><input class="finp" id="f-lead" type="number" min="1" value="${r.lead||''}"></div>
+    </div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="saveBom()">Salvar</button>`;
+  document.getElementById('modal').style.display='flex';
+}
+function saveBom(){
+  const pai=document.getElementById('f-pai').value.trim().toLowerCase();
+  const comp=document.getElementById('f-comp').value.trim().toLowerCase();
+  const qty=parseFloat(document.getElementById('f-qty').value)||1;
+  const unit=document.getElementById('f-unit').value;
+  const custo=parseFloat(document.getElementById('f-custo').value)||0;
+  const lead=parseInt(document.getElementById('f-lead').value)||7;
+  if(!pai||!comp){toast('Preencha Produto Pai e Componente!');return;}
+  if(modalEditId){Object.assign(DB.bom.find(x=>x.id===modalEditId),{pai,comp,qty,unit,custo,lead});toast('BOM atualizada!');}
+  else{const nId=DB.bom.length?Math.max(...DB.bom.map(r=>r.id))+1:1;DB.bom.push({id:nId,pai,comp,qty,unit,custo,lead,status:'ok'});DB.bom.sort((a,b)=>a.pai.localeCompare(b.pai));toast('Componente adicionado!');}
+  closeModal();renderTab('bom');
+}
+function delBom(id){DB.bom=DB.bom.filter(x=>x.id!==id);renderTab('bom');toast('Componente removido');}
+
+function openEstModal(){
+  document.getElementById('modal-title').textContent='Lançar Entrada de Estoque';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="fg"><label class="flbl">Produto</label><select class="fsel" id="f-est-prod">${DB.estoque.map(e=>`<option value="${e.id}">${e.prod}</option>`).join('')}</select></div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Quantidade</label><input class="finp" id="f-est-qty" type="number" min="1" placeholder="ex: 50"></div>
+      <div class="fg"><label class="flbl">Nota Fiscal</label><input class="finp" id="f-est-nf" placeholder="ex: NF-4822"></div>
+    </div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-green" onclick="saveEstoque()">Lançar</button>`;
+  document.getElementById('modal').style.display='flex';
+}
+function saveEstoque(){
+  const id=parseInt(document.getElementById('f-est-prod').value);
+  const qty=parseInt(document.getElementById('f-est-qty').value)||0;
+  const nf=document.getElementById('f-est-nf').value||'—';
+  if(qty<=0){toast('Informe a quantidade!');return;}
+  const e=DB.estoque.find(x=>x.id===id);
+  if(e){e.estoque+=qty;if(e.estoque>=e.minimo)e.status='ok';DB.atividade.unshift({tipo:'green',ico:'&#9650;',titulo:'Estoque recebido',sub:`${qty} un de ${e.prod} — ${nf}`,time:'agora'});}
+  closeModal();renderTab('estoque');toast('Entrada lançada com sucesso!');
+}
+
+function openPlanoModal(){
+  document.getElementById('modal-title').textContent='Nova Ordem no Plano Mestre';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="fg"><label class="flbl">Produto</label><select class="fsel" id="f-pl-prod"><option value="SKT-001">SKT-001 — Skate</option><option value="BCL-001">BCL-001 — Bicicleta</option><option value="CAD-001">CAD-001 — Cadeira</option></select></div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Mês</label><input class="finp" id="f-pl-mes" placeholder="ex: Jul/25"></div>
+      <div class="fg"><label class="flbl">Quantidade</label><input class="finp" id="f-pl-qty" type="number" min="1" placeholder="ex: 20"></div>
+    </div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="savePlano()">Adicionar</button>`;
+  document.getElementById('modal').style.display='flex';
+}
+function savePlano(){
+  const prod=document.getElementById('f-pl-prod').value;
+  const mes=document.getElementById('f-pl-mes').value.trim();
+  const qtd=parseInt(document.getElementById('f-pl-qty').value)||0;
+  if(!mes||qtd<=0){toast('Preencha todos os campos!');return;}
+  const nId=DB.plano.length?Math.max(...DB.plano.map(x=>x.id))+1:1;
+  DB.plano.push({id:nId,produto:prod,mes,qtd,status:'rascunho'});
+  closeModal();renderTab('plano');toast('Ordem adicionada ao PMP!');
+}
+
+function openRecModal(id){
+  const r=id?DB.recursos.find(x=>x.id===id):null;
+  document.getElementById('modal-title').textContent=r?`Editar Recurso — ${r.nome}`:'Novo Recurso';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="fg"><label class="flbl">Nome do Recurso</label><input class="finp" id="f-rc-nome" placeholder="ex: Torno CNC" value="${r?r.nome:''}"></div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Tipo</label><select class="fsel" id="f-rc-tipo">
+        <option value="maquina" ${r&&r.tipo==='maquina'?'selected':''}>Máquina</option>
+        <option value="mao_obra" ${r&&r.tipo==='mao_obra'?'selected':''}>Mão de Obra</option>
+      </select></div>
+      <div class="fg"><label class="flbl">Capacidade (h/mês)</label><input class="finp" id="f-rc-cap" type="number" min="1" placeholder="480" value="${r?r.capacidade:''}"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Horas Ocupadas</label><input class="finp" id="f-rc-ocu" type="number" min="0" placeholder="0" value="${r?r.ocupado:''}"></div>
+      <div class="fg"><label class="flbl">Custo por Hora (R$)</label><input class="finp" id="f-rc-custo" type="number" min="0" step="0.50" placeholder="45" value="${r?r.custo_hr:''}"></div>
+    </div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="saveRec(${id||'null'})">${r?'Atualizar':'Cadastrar'}</button>`;
+  document.getElementById('modal').style.display='flex';
+}
+function saveRec(id){
+  const nome=document.getElementById('f-rc-nome').value.trim();
+  const tipo=document.getElementById('f-rc-tipo').value;
+  const cap=parseInt(document.getElementById('f-rc-cap').value)||480;
+  const ocu=Math.min(parseInt(document.getElementById('f-rc-ocu').value)||0,cap);
+  const custo=parseFloat(document.getElementById('f-rc-custo').value)||45;
+  if(!nome){toast('Informe o nome do recurso!');return;}
+  const pct=ocu/cap;
+  const status=pct>0.9?'err':pct>0.75?'warn':'ok';
+  if(id&&id!=='null'){
+    Object.assign(DB.recursos.find(x=>x.id===id),{nome,tipo,capacidade:cap,ocupado:ocu,custo_hr:custo,status});
+    toast('Recurso atualizado!');
+  } else {
+    const nId=DB.recursos.length?Math.max(...DB.recursos.map(x=>x.id))+1:1;
+    DB.recursos.push({id:nId,nome,tipo,capacidade:cap,ocupado:ocu,custo_hr:custo,status});
+    DB.atividade.unshift({tipo:'blue',ico:'&#9881;',titulo:'Recurso cadastrado',sub:`${nome} adicionado ao sistema`,time:'agora'});
+    toast('Recurso cadastrado!');
+  }
+  closeModal();renderTab('recursos');
+}
+
+function openProdModal(){
+  document.getElementById('modal-title').textContent='Novo Produto';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="frow">
+      <div class="fg"><label class="flbl">Código</label><input class="finp" id="f-pr-cod" placeholder="ex: SKT-002"></div>
+      <div class="fg"><label class="flbl">Tipo</label><select class="fsel" id="f-pr-tipo"><option value="produto_final">Produto Final</option><option value="componente">Componente</option></select></div>
+    </div>
+    <div class="fg"><label class="flbl">Nome</label><input class="finp" id="f-pr-nome" placeholder="ex: Skate Pro"></div>
+    <div class="fg"><label class="flbl">Preço (R$)</label><input class="finp" id="f-pr-preco" type="number" placeholder="0.00"></div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-blue" onclick="saveProd()">Salvar</button>`;
+  document.getElementById('modal').style.display='flex';
+}
+function saveProd(){
+  const cod=document.getElementById('f-pr-cod').value.trim().toUpperCase();
+  const nome=document.getElementById('f-pr-nome').value.trim();
+  const tipo=document.getElementById('f-pr-tipo').value;
+  const preco=parseFloat(document.getElementById('f-pr-preco').value)||0;
+  if(!cod||!nome){toast('Preencha código e nome!');return;}
+  const nId=DB.produtos.length?Math.max(...DB.produtos.map(x=>x.id))+1:1;
+  DB.produtos.push({id:nId,cod,nome,tipo,preco,ativo:true});
+  closeModal();renderTab('produtos');toast('Produto cadastrado!');
+}
+
+function closeModal(){document.getElementById('modal').style.display='none';}
+function exportCSV(){
+  const rows=DB.bom.map(r=>`${r.pai},${r.comp},${r.qty},${r.unit},${r.custo},${r.lead}`);
+  const csv='Produto Pai,Componente,Quantidade,Unidade,Custo Unit.,Lead Time\n'+rows.join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bom_export.csv';a.click();
+  toast('BOM exportada em CSV!');
+}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+renderTab('overview');
+</script>
+</body>
+</html>
